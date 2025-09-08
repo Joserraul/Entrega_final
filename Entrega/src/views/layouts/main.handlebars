@@ -5,18 +5,25 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{{title}}</title>
     <link rel="icon" type="image/x-icon" href="/public/favicon.ico">
+    <link
+    href="https://cdn.jsdelivr.net/npm/remixicon@4.5.0/fonts/remixicon.css"
+    rel="stylesheet"
+/>
     <script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    important: true,
+  }
+</script>
 </head>
 <body>
 
+    {{> NavbarMO }}
     <main>
-        
 
         {{{body}}}
     </main>
 
-    <footer>
-        <p>&copy; 2023 Mi Tienda</p>
-    </footer>
+
 </body>
 </html>

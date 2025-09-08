@@ -2,13 +2,12 @@ import { Router } from "express";
 
 const router = Router();
 
-router.get("/vista1", (req, res) => {
-  res.render("vista1");
+router.get ("/homeMO", (req, res) => {
+  res.render("homeMO");
 });
 
-
-router.get("/realTimeProducts", (req, res) => {
-  res.render("realTimeProducts");
+router.get("/productMO", (req, res) => {
+  res.render("productMO");
 });
 
 export default router;
