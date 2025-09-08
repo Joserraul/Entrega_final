@@ -8,6 +8,16 @@
     "code": "abc000",
     "stock": 30,
     "timestamp": 1756229080533
+  },
+  {
+    "id": 5,
+    "title": "Corrector salome",
+    "description": "matte",
+    "price": 10,
+    "thumbnail": "Sin imagen",
+    "code": "1",
+    "stock": 10,
+    "status": true,
+    "timestamp": 1757359434450
   }
-
 ]
