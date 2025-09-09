@@ -46,4 +46,4 @@ class ProductManager {
   };
 }
 
-export const ProductManager = new ProductManager(ProductModel);
+export const productManager = new ProductManager(ProductModel);

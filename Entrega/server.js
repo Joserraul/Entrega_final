@@ -1,6 +1,6 @@
 import express from 'express';
 import productRouter from './src/router/router_ProductManager.js';
-import cartRouter from './src/router/router_Cart.js';
+// import cartRouter from './src/router/router_Cart.js';
 import router_views from './src/router/router_views.js';
 import handlebars from 'express-handlebars';
 import { __dirname } from './utils.js';
@@ -8,10 +8,8 @@ import { errorHandler } from './src/Middleware/error_Handdlerbars.js';
 import path from 'path';
 import { Server } from 'socket.io';
 import http from 'http';
-import mongoose from 'mongoose';
 import { initMongoDB } from "./conection.js";
-import { ProductModel } from './src/Models/ProductModel.js';
-import { ProductManager } from './src/Manager/ProductManager.js';
+import { managerproduct } from './src/Controllers/controllersProducts.js';
 
 const app = express();
 
@@ -21,8 +19,7 @@ app.use(express.urlencoded({ extended: true }));
 const server = http.createServer(app);
 const io = new Server(server);
 
-// Instancia correcta para MongoDB
-const productManager = new ProductManager(ProductModel);
+// Ya tienes la instancia lista: managerproduct
 
 app.use((req, res, next) => {
   req.io = io;
@@ -35,7 +32,7 @@ app.set('view engine', 'handlebars');
 
 app.get('/realtimeproducts', async (req, res) => {
   try {
-    const products = await productManager.getAll();
+    const products = await managerproduct.getAll();
     res.render('realTimeProducts', { products });
   } catch (error) {
     console.error(error);
@@ -48,7 +45,7 @@ io.on('connection', (socket) => {
 
   socket.on('requestProducts', async () => {
     try {
-      const products = await productManager.getAll();
+      const products = await managerproduct.getAll();
       socket.emit('productsUpdated', products);
     } catch (error) {
       socket.emit('error', error.message);
@@ -57,8 +54,8 @@ io.on('connection', (socket) => {
 
   socket.on('addProduct', async (productData) => {
     try {
-      await productManager.create(productData);
-      const products = await productManager.getAll();
+      await managerproduct.addProduct(productData);
+      const products = await managerproduct.getAll();
       io.emit('productsUpdated', products);
     } catch (error) {
       socket.emit('error', error.message);
@@ -67,8 +64,8 @@ io.on('connection', (socket) => {
 
   socket.on('deleteProduct', async (productId) => {
     try {
-      await productManager.delete(productId);
-      const products = await productManager.getAll();
+      await managerproduct.delete(productId);
+      const products = await managerproduct.getAll();
       io.emit('productsUpdated', products);
     } catch (error) {
       socket.emit('error', error.message);
@@ -92,7 +89,9 @@ app.engine('handlebars', handlebars.engine({
 app.set('views', path.join(__dirname, 'src/views'));
 app.set('view engine', 'handlebars');
 
-app.use('/api/carts', cartRouter);
+// Si quieres usar el router de carts, descomenta la siguiente línea:
+// app.use('/api/carts', cartRouter);
+
 app.use('/api/products', productRouter);
 app.use('/', router_views);
 

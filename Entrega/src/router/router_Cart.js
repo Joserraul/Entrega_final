@@ -1,10 +1,9 @@
-import { Router } from 'express';
+/* import { Router } from 'express';
 import CartManager from '../Manager/Cart_Manager.js';
-import ProductManager from '../Manager/ProductManager.js';
+import productManager from '../Manager/ProductManager.js';
 
 const router = Router();
 
-const productManager = new ProductManager('./src/data/products.json');
 const cartManager = new CartManager('./src/data/carts.json', productManager);
 
 router.post('/', async (req, res) => {
@@ -58,4 +57,4 @@ router.post('/:cid/checkout', async (req, res) => {
 
 
 
-export default router;
+export default router; */
