@@ -2,26 +2,27 @@ import express from 'express';
 import productRouter from './src/router/router_ProductManager.js';
 import cartRouter from './src/router/router_Cart.js';
 import router_views from './src/router/router_views.js';
-import  handlebars from 'express-handlebars';
+import handlebars from 'express-handlebars';
 import { __dirname } from './utils.js';
 import { errorHandler } from './src/Middleware/error_Handdlerbars.js';
 import path from 'path';
 import { Server } from 'socket.io';
 import http from 'http';
-import ProductManager from './src/Manager/ProductManager.js';
 import mongoose from 'mongoose';
 import { initMongoDB } from "./conection.js";
-
+import { ProductModel } from './src/Models/ProductModel.js';
+import { ProductManager } from './src/Manager/ProductManager.js';
 
 const app = express();
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// ----------------------------------------------------//
 const server = http.createServer(app);
 const io = new Server(server);
-const productManager = new ProductManager(path.join(__dirname, 'src/data/products.json'));
+
+// Instancia correcta para MongoDB
+const productManager = new ProductManager(ProductModel);
 
 app.use((req, res, next) => {
   req.io = io;
@@ -34,7 +35,7 @@ app.set('view engine', 'handlebars');
 
 app.get('/realtimeproducts', async (req, res) => {
   try {
-    const products = await productManager.listarproductos();
+    const products = await productManager.getAll();
     res.render('realTimeProducts', { products });
   } catch (error) {
     console.error(error);
@@ -42,14 +43,12 @@ app.get('/realtimeproducts', async (req, res) => {
   }
 });
 
-
 io.on('connection', (socket) => {
   console.log('Crack se conectó');
 
-
   socket.on('requestProducts', async () => {
     try {
-      const products = await productManager.listarproductos();
+      const products = await productManager.getAll();
       socket.emit('productsUpdated', products);
     } catch (error) {
       socket.emit('error', error.message);
@@ -58,8 +57,8 @@ io.on('connection', (socket) => {
 
   socket.on('addProduct', async (productData) => {
     try {
-      await productManager.agregarproducto(productData);
-      const products = await productManager.listarproductos();
+      await productManager.create(productData);
+      const products = await productManager.getAll();
       io.emit('productsUpdated', products);
     } catch (error) {
       socket.emit('error', error.message);
@@ -68,8 +67,8 @@ io.on('connection', (socket) => {
 
   socket.on('deleteProduct', async (productId) => {
     try {
-      await productManager.Borrarproducto(parseInt(productId));
-      const products = await productManager.listarproductos();
+      await productManager.delete(productId);
+      const products = await productManager.getAll();
       io.emit('productsUpdated', products);
     } catch (error) {
       socket.emit('error', error.message);
@@ -80,25 +79,19 @@ io.on('connection', (socket) => {
     console.log('❌ Crack cliente se desconectó');
   });
 });
-//-----------------------------------------------------//
-
-
-
 
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.static(path.join(__dirname, 'dist')));
 
 app.engine('handlebars', handlebars.engine({
-    defaultLayout: 'main',
-    layoutsDir: path.join(__dirname, 'src/views/layouts'),
-    partialsDir: path.join(__dirname, 'src/views/partials')
+  defaultLayout: 'main',
+  layoutsDir: path.join(__dirname, 'src/views/layouts'),
+  partialsDir: path.join(__dirname, 'src/views/partials')
 }));
 
 app.set('views', path.join(__dirname, 'src/views'));
 app.set('view engine', 'handlebars');
 
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
 app.use('/api/carts', cartRouter);
 app.use('/api/products', productRouter);
 app.use('/', router_views);

@@ -4,24 +4,29 @@ const ProductSchema = new Schema({
     title: {
         type: String,
         required: true,
-        max: 50
+        maxlength: 50
     },
     description: {
         type: String,
         required: true,
-        minLength: [3, 'Minimum 3 characters'],
-        maxLength: [50, 'Maximum 50 characters']
+        minlength: 3,
+        maxlength: 50
     },
     price: {
         type: Number,
         required: true,
-        min: [0, 'Price must be positive']
+        min: 0
     },
     stock: {
         type: Number,
         required: true,
-        min: [0, 'Stock must be positive']
-    }
-})
+        min: 0
+    },
+    category: {
+        type: String,
+        required: true,
+        maxlength: 30
+    },
+});
 
 export const ProductModel = model('products', ProductSchema);
