@@ -30,6 +30,64 @@ app.use((req, res, next) => {
   next();
 });
 
+
+app.use('/api/carts', cartRouter);
+
+app.get('/productMO', async (req, res) => {
+  try {
+    // ✅ Pasar el objeto req completo de Express
+    const result = await managerproduct.getAllWithPagination(req, res);
+    
+    // Renderizar la vista con datos REALES
+    res.render('productMO', {
+      products: result.payload,       // Productos de MongoDB
+      pagination: result             // Datos de paginación
+    });
+  } catch (error) {
+    console.error('Error loading products:', error);
+    // ✅ Renderizar error simple sin vista "error"
+    res.status(500).send(`
+      <html>
+        <body>
+          <h1>Error al cargar productos</h1>
+          <p>${error.message}</p>
+          <a href="/productMO">Volver a productos</a>
+        </body>
+      </html>
+    `);
+  }
+});
+
+
+app.get('/carts/:cid', async (req, res) => {
+    try {
+        const cart = await cartManager.getCartById({
+            params: { cid: req.params.cid }
+        }, {
+            json: (data) => data,
+            status: (code) => ({ 
+                json: (data) => {
+                    if (code !== 200) throw new Error(data.error);
+                    return data;
+                }
+            })
+        });
+        
+        res.render('CartMO', { cart });
+    } catch (error) {
+        console.error('Error loading cart:', error);
+        res.status(500).send(`
+            <html>
+                <body>
+                    <h1>Error al cargar el carrito</h1>
+                    <p>${error.message}</p>
+                    <a href="/productMO">Volver a productos</a>
+                </body>
+            </html>
+        `);
+    }
+});
+
 // Configuración de Handlebars
 app.engine('handlebars', handlebars.engine({
   defaultLayout: 'main',
@@ -67,55 +125,27 @@ app.use('/', router_views);
 
 app.use('/api/carts', cartRouter);
 
-// Ruta para realtimeproducts (ACTUALIZADA)
-app.get('/realtimeproducts', async (req, res) => {
-  try {
-    // ✅ Usa el método simple para obtener todos los productos
-    const products = await managerproduct.getAllSimple();
-    res.render('realTimeProducts', { products });
-  } catch (error) {
-    console.error('Error en realtimeproducts:', error);
-    res.status(500).send('Error al cargar los productos');
-  }
-});
 
-// En tu server.js, agrega esta ruta ANTES de las rutas de Socket.io
-app.get('/products', async (req, res) => {
+// Agrega esta ruta en tu server.js
+app.get('/productMO', async (req, res) => {
   try {
-    const { limit, page, sort, query } = req.query;
+    const { limit = 10, page = 1, sort, query } = req.query;
     
+    // Usar el método con paginación que ya creamos
     const result = await managerproduct.getAllWithPagination({
       query: { limit, page, sort, query }
     }, {
       json: (data) => data
     });
 
-    res.render('products', {
+    // Renderizar la vista productMO con los datos reales
+    res.render('productMO', {
       products: result.payload,
-      pagination: result
+      pagination: result,
+      cartId: req.cartId || null
     });
   } catch (error) {
-    res.status(500).render('error', { error: 'Error al cargar productos' });
-  }
-});
-
-// En tu router_views.js o server.js
-// Esta ruta ya la tienes, asegúrate de que esté así:
-app.get('/products', async (req, res) => {
-  try {
-    const { limit, page, sort, query } = req.query;
-    
-    const result = await managerproduct.getAllWithPagination({
-      query: { limit, page, sort, query }
-    }, {
-      json: (data) => data
-    });
-
-    res.render('productMO', {  // Asegúrate de que el nombre de la vista sea 'productMO'
-      products: result.payload,
-      pagination: result
-    });
-  } catch (error) {
+    console.error('Error loading products:', error);
     res.status(500).render('error', { error: 'Error al cargar productos' });
   }
 });
