@@ -1,0 +1,147 @@
+<body class="bg-gray-50 font-sans text-gray-900">
+  <div class="max-w-4xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+
+    <h1 class="text-3xl font-bold mb-8 text-center">Tu carrito</h1>
+
+    {{#if cart.products.length}}
+    <div class="bg-white rounded-lg shadow-md overflow-hidden">
+
+      <ul class="divide-y divide-gray-200">
+        {{#each cart.products}}
+        <li class="flex flex-col sm:flex-row items-start p-6 gap-4">
+          {{#if this.product.thumbnail}}
+          <img src="{{this.product.thumbnail}}" alt="{{this.product.title}}" class="w-24 h-24 object-cover rounded-md" />
+          {{else}}
+          <img src="https://via.placeholder.com/120" alt="{{this.product.title}}" class="w-24 h-24 object-cover rounded-md" />
+          {{/if}}
+          
+          <div class="flex-1 min-w-0">
+            <h3 class="text-lg font-semibold text-gray-900">{{this.product.title}}</h3>
+            <p class="text-gray-600 mt-1">Categoría: {{this.product.category}}</p>
+            <p class="text-gray-600">Stock disponible: {{this.product.stock}}</p>
+            <div class="mt-4 flex items-center gap-4">
+              <div class="flex items-center border border-gray-300 rounded">
+                <button class="px-3 py-1 text-gray-700 hover:bg-gray-100" 
+                        onclick="updateQuantity('{{../cart._id}}', '{{this.product._id}}', {{this.quantity}}-1)">−</button>
+                <span class="px-3 py-1" id="quantity-{{this.product._id}}">{{this.quantity}}</span>
+                <button class="px-3 py-1 text-gray-700 hover:bg-gray-100" 
+                        onclick="updateQuantity('{{../cart._id}}', '{{this.product._id}}', {{this.quantity}}+1)">+</button>
+              </div>
+              <button class="text-red-500 hover:text-red-700 text-sm font-medium" 
+                      onclick="removeProduct('{{../cart._id}}', '{{this.product._id}}')">Eliminar</button>
+            </div>
+          </div>
+          <div class="mt-4 sm:mt-0 sm:ml-auto text-right">
+            <p class="text-xl font-bold">${{multiply this.product.price this.quantity}}</p>
+            <p class="text-sm text-gray-600">${{this.product.price}} c/u</p>
+          </div>
+        </li>
+        {{/each}}
+      </ul>
+
+      <div class="bg-gray-50 p-6">
+        {{#with (calculateTotals cart.products) as |totals|}}
+        <div class="flex justify-between text-lg font-medium text-gray-900 mb-4">
+          <span>Subtotal</span>
+          <span>${{totals.subtotal}}</span>
+        </div>
+        <div class="flex justify-between text-lg font-medium text-gray-900 mb-4">
+          <span>Envío</span>
+          <span>${{totals.shipping}}</span>
+        </div>
+        <div class="border-t pt-4 flex justify-between text-xl font-bold">
+          <span>Total</span>
+          <span>${{totals.total}}</span>
+        </div>
+        {{/with}}
+
+        <div class="mt-6">
+          <button class="w-full bg-black text-white py-3 px-6 rounded-md font-semibold hover:bg-gray-900 transition"
+                  onclick="checkout('{{cart._id}}')">
+            Finalizar compra
+          </button>
+        </div>
+      </div>
+    </div>
+
+    {{else}}
+    <div class="bg-white rounded-lg shadow-md p-8 text-center">
+      <svg class="mx-auto h-16 w-16 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path>
+      </svg>
+      <h3 class="mt-4 text-lg font-medium text-gray-900">Tu carrito está vacío</h3>
+      <p class="mt-2 text-gray-500">Agrega algunos productos para comenzar a comprar</p>
+      <div class="mt-6">
+        <a href="/productMO" class="bg-black text-white px-6 py-3 rounded-md font-semibold hover:bg-gray-900 transition">
+          Ver productos
+        </a>
+      </div>
+    </div>
+    {{/if}}
+
+    <div class="mt-6 text-center">
+      <a href="/productMO" class="text-gray-600 hover:text-gray-900 font-medium">← Seguir comprando</a>
+    </div>
+  </div>
+
+  <!-- JavaScript para las acciones del carrito -->
+  <script>
+    async function updateQuantity(cartId, productId, newQuantity) {
+      if (newQuantity < 1) return;
+      
+      try {
+        const response = await fetch(`/api/carts/${cartId}/products/${productId}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ quantity: newQuantity })
+        });
+        
+        if (response.ok) {
+          location.reload();
+        } else {
+          alert('Error al actualizar la cantidad');
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        alert('Error al actualizar la cantidad');
+      }
+    }
+
+    async function removeProduct(cartId, productId) {
+      try {
+        const response = await fetch(`/api/carts/${cartId}/products/${productId}`, {
+          method: 'DELETE'
+        });
+        
+        if (response.ok) {
+          location.reload();
+        } else {
+          alert('Error al eliminar el producto');
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        alert('Error al eliminar el producto');
+      }
+    }
+
+    async function checkout(cartId) {
+      try {
+        const response = await fetch(`/api/carts/${cartId}/purchase`, {
+          method: 'POST'
+        });
+        
+        if (response.ok) {
+          alert('¡Compra realizada con éxito!');
+          location.reload();
+        } else {
+          alert('Error al finalizar la compra');
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        alert('Error al finalizar la compra');
+      }
+    }
+  </script>
+</body>

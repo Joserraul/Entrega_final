@@ -3,10 +3,11 @@ import { managerproduct } from "../Controllers/controllersProducts.js";
 
 const router = Router();
 
-router.get("/", managerproduct.getAll);
-router.get("/:id", managerproduct.getById);
-router.post("/", managerproduct.addProduct);
-router.put("/:id", managerproduct.updateProduct);
-router.delete("/:id", managerproduct.delete);
+// ✅ Usa el método con paginación para la API
+router.get("/", managerproduct.getAllWithPagination.bind(managerproduct));
+router.get("/:id", managerproduct.getById.bind(managerproduct));
+router.post("/", managerproduct.addProduct.bind(managerproduct));
+router.put("/:id", managerproduct.updateProduct.bind(managerproduct));
+router.delete("/:id", managerproduct.delete.bind(managerproduct));
 
 export default router;

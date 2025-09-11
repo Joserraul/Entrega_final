@@ -1,60 +1,17 @@
-/* import { Router } from 'express';
-import CartManager from '../Manager/Cart_Manager.js';
-import productManager from '../Manager/ProductManager.js';
+import { Router } from "express";
+import { cartManager } from "../Controllers/controllersCart.js";
 
 const router = Router();
 
-const cartManager = new CartManager('./src/data/carts.json', productManager);
+// ✅ ENDPOINTS REQUERIDOS (PUNTO 2)
+router.post("/", cartManager.createCart.bind(cartManager));
+router.get("/:cid", cartManager.getCartById.bind(cartManager));
+router.post("/:cid/product/:pid", cartManager.addProductToCart.bind(cartManager));
 
-router.post('/', async (req, res) => {
-  try {
-    const newCart = await cartManager.crearCarrito();
-    res.status(201).json(newCart);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
+// ✅ PUNTO 2 - Endpoints específicos
+router.delete("/:cid/products/:pid", cartManager.deleteProductFromCart.bind(cartManager));
+router.put("/:cid", cartManager.updateCart.bind(cartManager));
+router.put("/:cid/products/:pid", cartManager.updateProductQuantity.bind(cartManager));
+router.delete("/:cid", cartManager.clearCart.bind(cartManager));
 
-router.get('/', async (req, res) => {
-  try {
-    const carts = await cartManager.listaCarts();
-    res.json(carts);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
-
-router.post('/:cid/products/:pid', async (req, res) => {
-  try {
-    const cid = Number(req.params.cid);
-    const pid = Number(req.params.pid);
-
-    const updatedCart = await cartManager.agregarProducto(cid, pid);
-    res.json({
-      success: true,
-      message: `Producto  ${pid} agregado al carrito con ID ${cid}`,
-      cart: updatedCart
-    });
-  } catch (error) {
-    if (error.message.includes('no hay disponible')) {
-      res.status(400).json({ error: error.message });
-    } else {
-      res.status(404).json({ error: error.message });
-  }
-}
-});
-
-router.post('/:cid/checkout', async (req, res) => {
-  try {
-    const cid = Number(req.params.cid);
-    const purchaseResult = await cartManager.compraRealizada(cid);
-    res.json(purchaseResult);
-  } catch (error) {
-    res.status(400).json({ error: error.message });
-  }
-});
-
-
-
-export default router; */
+export default router;

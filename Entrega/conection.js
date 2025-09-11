@@ -3,7 +3,7 @@ import { connect } from "mongoose";
 
 export const initMongoDB = async () => {
   try {
-    await connect(process.env.MONGO_ATLAS_URL);
+    await connect(process.env.MONGO_LOCAL_URL);
     console.log("Connected to MongoDB");
     // await connect(process.env.MONGO_ATLAS_URL);
   } catch (error) {
