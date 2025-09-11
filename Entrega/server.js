@@ -34,7 +34,24 @@ app.use((req, res, next) => {
 app.engine('handlebars', handlebars.engine({
   defaultLayout: 'main',
   layoutsDir: path.join(__dirname, 'src/views/layouts'),
-  partialsDir: path.join(__dirname, 'src/views/partials')
+  partialsDir: path.join(__dirname, 'src/views/partials'),
+  helpers: {
+    // Helper para multiplicar precio por cantidad
+    multiply: (a, b) => a * b,
+    
+    // Helper para calcular totales
+    calculateTotals: function(products) {
+      const subtotal = products.reduce((sum, item) => sum + (item.product.price * item.quantity), 0);
+      const shipping = subtotal > 0 ? 5000 : 0;
+      const total = subtotal + shipping;
+      
+      return {
+        subtotal: subtotal.toLocaleString(),
+        shipping: shipping.toLocaleString(),
+        total: total.toLocaleString()
+      };
+    }
+  }
 }));
 
 app.set('views', path.join(__dirname, 'src/views'));
@@ -59,6 +76,47 @@ app.get('/realtimeproducts', async (req, res) => {
   } catch (error) {
     console.error('Error en realtimeproducts:', error);
     res.status(500).send('Error al cargar los productos');
+  }
+});
+
+// En tu server.js, agrega esta ruta ANTES de las rutas de Socket.io
+app.get('/products', async (req, res) => {
+  try {
+    const { limit, page, sort, query } = req.query;
+    
+    const result = await managerproduct.getAllWithPagination({
+      query: { limit, page, sort, query }
+    }, {
+      json: (data) => data
+    });
+
+    res.render('products', {
+      products: result.payload,
+      pagination: result
+    });
+  } catch (error) {
+    res.status(500).render('error', { error: 'Error al cargar productos' });
+  }
+});
+
+// En tu router_views.js o server.js
+// Esta ruta ya la tienes, asegúrate de que esté así:
+app.get('/products', async (req, res) => {
+  try {
+    const { limit, page, sort, query } = req.query;
+    
+    const result = await managerproduct.getAllWithPagination({
+      query: { limit, page, sort, query }
+    }, {
+      json: (data) => data
+    });
+
+    res.render('productMO', {  // Asegúrate de que el nombre de la vista sea 'productMO'
+      products: result.payload,
+      pagination: result
+    });
+  } catch (error) {
+    res.status(500).render('error', { error: 'Error al cargar productos' });
   }
 });
 

@@ -1,17 +1,13 @@
-import fs from 'fs/promises';
-import path from 'path';
-
+import { cartModel } from "../Models/CartModel";
+import { productModel } from "../Models/ProductModel";
 /**
  * Manager para manejar carritos de compras
  * @class CartManager
  */
 
 class CartManager {
-  constructor(filepath, productManager) {
-    this.path = path.resolve(filepath);
-    this.carts = [];
-    this.productManager = productManager;
-    this.iniciar();
+  constructor(model) {
+    this.model = model;
   }
 
 
@@ -151,4 +147,4 @@ class CartManager {
   }
 }
 
-export default CartManager;
+export const cartManager = new CartManager(cartModel);

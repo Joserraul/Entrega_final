@@ -19,5 +19,16 @@
     "stock": 10,
     "status": true,
     "timestamp": 1757359434450
+  }, 
+   {
+    "id": 6,
+    "title": "Corrector salome",
+    "description": "matte",
+    "price": 10,
+    "thumbnail": "Sin imagen",
+    "code": "133",
+    "stock": 10,
+    "status": true,
+    "timestamp": 1757359434450
   }
 ]

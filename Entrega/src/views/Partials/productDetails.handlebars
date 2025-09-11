@@ -1,0 +1,64 @@
+<div class="max-w-4xl mx-auto py-8 px-4">
+        <div class="bg-white rounded-lg shadow-md overflow-hidden">
+            <div class="md:flex">
+                <div class="md:flex-shrink-0">
+                    {{#if product.thumbnail}}
+                    <img src="{{product.thumbnail}}" alt="{{product.title}}" class="h-64 w-full object-cover md:w-64">
+                    {{else}}
+                    <div class="h-64 w-full bg-gray-200 flex items-center justify-center md:w-64">
+                        <span class="text-gray-500">Sin imagen</span>
+                    </div>
+                    {{/if}}
+                </div>
+                <div class="p-8">
+                    <h1 class="text-2xl font-bold text-black">{{product.title}}</h1>
+                    <p class="mt-2 text-gray-600">{{product.description}}</p>
+                    <div class="mt-4">
+                        <span class="text-2xl font-bold text-black">${{product.price}}</span>
+                        <p class="text-gray-600">Stock: {{product.stock}}</p>
+                        <p class="text-gray-600">Categoría: {{product.category}}</p>
+                    </div>
+                    <div class="mt-6">
+                        <button onclick="addToCart('{{product._id}}')" class="bg-black text-white px-6 py-3 rounded-md font-semibold hover:bg-gray-800 transition">
+                            🛒 Agregar al carrito
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    async function addToCart(productId) {
+        try {
+            let cartId = localStorage.getItem('cartId');
+            
+            if (!cartId) {
+                const response = await fetch('/api/carts', {
+                    method: 'POST'
+                });
+                
+                if (response.ok) {
+                    const cart = await response.json();
+                    cartId = cart._id;
+                    localStorage.setItem('cartId', cartId);
+                } else {
+                    throw new Error('Error al crear carrito');
+                }
+            }
+            
+            const response = await fetch(`/api/carts/${cartId}/products/${productId}`, {
+                method: 'POST'
+            });
+            
+            if (response.ok) {
+                alert('✅ Producto agregado al carrito');
+            } else {
+                alert('❌ Error al agregar el producto');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('❌ Error al agregar al carrito');
+        }
+    }
+    </script>

@@ -1,73 +1,170 @@
 
 
-                <div class="flex items-center space-x-6">
-                    <a href="#" class="text-gray-700 hover:text-black">
-                        <i class="fas fa-search text-lg"></i>
-                    </a>
-                    <a href="#" class="text-gray-700 hover:text-black">
-                        <i class="fas fa-shopping-cart text-lg"></i>
-                    </a>
-                    <a href="#" class="text-gray-700 hover:text-black">
-                        <i class="fas fa-user text-lg"></i>
-                    </a>
+
+
+<div class="container mx-auto px-4 py-12">
+        <h2 class="text-2xl font-bold text-black mb-2">Productos Destacados</h2>
+        <p class="text-gray-600 mb-8">Los artículos más populares de nuestra colección</p>
+
+        <!-- PAGINACIÓN SUPERIOR -->
+        {{#if pagination}}
+        <div class="flex justify-center mb-8">
+            <div class="flex space-x-2">
+                {{#if pagination.hasPrevPage}}
+                <a href="{{pagination.prevLink}}" class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300">← Anterior</a>
+                {{/if}}
+                
+                <span class="px-4 py-2 bg-black text-white rounded">Página {{pagination.page}} de {{pagination.totalPages}}</span>
+                
+                {{#if pagination.hasNextPage}}
+                <a href="{{pagination.nextLink}}" class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300">Siguiente →</a>
+                {{/if}}
+            </div>
+        </div>
+        {{/if}}
+
+        <!-- LISTA DE PRODUCTOS -->
+        <ul class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {{#each products}}
+            <li class="product-card bg-white shadow-md rounded-lg p-6 hover:shadow-lg transition-shadow">
+                <div class="h-40 bg-gray-200 rounded-lg mb-4 flex items-center justify-center">
+                    {{#if this.thumbnail}}
+                    <img src="{{this.thumbnail}}" alt="{{this.title}}" class="w-full h-full object-cover rounded-lg">
+                    {{else}}
+                    <span class="text-gray-500">Imagen de {{this.title}}</span>
+                    {{/if}}
                 </div>
-            </div>
-        </div>
-    </nav>
+                
+                <h2 class="text-xl font-semibold text-black">{{this.title}}</h2>
+                <p class="text-gray-600 mt-2">Precio: ${{this.price}}</p>
+                <p class="text-gray-700 mt-3 line-clamp-2">{{this.description}}</p>
+                
+                <div class="mt-4 flex justify-between items-center">
+                    <!-- BOTÓN VER DETALLES -->
+                    <a href="/products/{{this._id}}" class="bg-gray-200 text-black hover:bg-gray-300 font-medium py-2 px-4 rounded transition-colors">
+                        Ver detalles
+                    </a>
+                    
+                    <!-- BOTÓN AÑADIR AL CARRITO -->
+                    <button onclick="addToCart('{{this._id}}')" class="bg-black text-white hover:bg-gray-800 font-medium py-2 px-4 rounded transition-colors">
+                        🛒 Añadir
+                    </button>
+                </div>
+            </li>
+            {{else}}
+            <li class="col-span-3 text-center py-12">
+                <p class="text-gray-600 text-lg">No hay productos disponibles</p>
+            </li>
+            {{/each}}
+        </ul>
 
-
-        <div class="container mx-auto px-4 py-12">
-            <h2 class="text-2xl font-bold text-black mb-2">Productos Destacados</h2>
-            <p class="text-gray-600 mb-8">Los artículos más populares de nuestra colección</p>
-
-            <div id="productsContainer">
-                <ul id="productList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-
-                </ul>
-            </div>
-        </div>
+ <!-- En tu productMO.handlebars, agrega esto donde quieras la paginación -->
+{{#if pagination}}
+<div class="flex justify-center mb-8">
+    <div class="flex space-x-2">
+        {{#if pagination.hasPrevPage}}
+        <a href="{{pagination.prevLink}}" class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300">← Anterior</a>
+        {{/if}}
+        
+        <span class="px-4 py-2 bg-black text-white rounded">Página {{pagination.page}} de {{pagination.totalPages}}</span>
+        
+        {{#if pagination.hasNextPage}}
+        <a href="{{pagination.nextLink}}" class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300">Siguiente →</a>
+        {{/if}}
     </div>
+</div>
+{{/if}}
 
-    <script src="/socket.io/socket.io.js"></script>
-    <script>
-        const socket = io();
+<!-- Y en cada producto, agrega el botón de agregar al carrito -->
+<div class="mt-4 flex justify-between">
+    <button onclick="addToCart('{{this._id}}')" class="bg-transparent border border-black text-black hover:bg-black hover:text-white font-medium py-2 px-4 rounded transition-colors">
+        Añadir al carrito
+    </button>
+    <button class="text-gray-500 hover:text-black">
+        <i class="fas fa-heart text-xl"></i>
+    </button>
+</div>
 
-        socket.emit('requestProducts');
-
-        socket.on('productsUpdated', (products) => {
-            const productList = document.getElementById('productList');
-            if (!productList) return;
-
-            productList.innerHTML = '';
-
-            if (products.length === 0) {
-                productList.innerHTML = `
-                    <p class="text-center text-gray-600 col-span-3 py-8">No hay productos disponibles</p>
-                `;
-                return;
-            }
-
-            products.forEach(product => {
-                const li = document.createElement('li');
-                li.className = "product-card bg-gray-100 shadow-md rounded-lg p-6";
-                li.setAttribute('data-id', product.id);
-                li.innerHTML = `
-                    <div class="h-40 bg-gray-200 rounded-lg mb-4 flex items-center justify-center">
-                        <span class="text-gray-500">Imagen de ${product.title}</span>
-                    </div>
-                    <h2 class="text-xl font-semibold text-black">${product.title}</h2>
-                    <p class="text-gray-600 mt-2">Precio: $${product.price}</p>
-                    <p class="text-gray-700 mt-3">${product.description}</p>
-                    <div class="mt-4 flex justify-between">
-                        <button class="bg-transparent border border-black text-black hover:bg-black hover:text-white font-medium py-2 px-4 rounded transition-colors">
-                            Añadir al carrito
-                        </button>
-                        <button class="text-gray-500 hover:text-black">
-                            <i class="fas fa-heart text-xl"></i>
-                        </button>
-                    </div>
-                `;
-                productList.appendChild(li);
+<!-- Al final del archivo, agrega el script para addToCart -->
+<script>
+async function addToCart(productId) {
+    try {
+        let cartId = localStorage.getItem('cartId');
+        
+        if (!cartId) {
+            const response = await fetch('/api/carts', {
+                method: 'POST'
             });
+            
+            if (response.ok) {
+                const cart = await response.json();
+                cartId = cart._id;
+                localStorage.setItem('cartId', cartId);
+            } else {
+                throw new Error('Error al crear carrito');
+            }
+        }
+        
+        const response = await fetch(`/api/carts/${cartId}/products/${productId}`, {
+            method: 'POST'
         });
+        
+        if (response.ok) {
+            alert('✅ Producto agregado al carrito');
+        } else {
+            alert('❌ Error al agregar el producto');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('❌ Error al agregar al carrito');
+    }
+}
+</script>
+
+    <!-- JavaScript para agregar al carrito -->
+    <script>
+    async function addToCart(productId) {
+        try {
+            // Obtener o crear carrito
+            let cartId = localStorage.getItem('cartId');
+            
+            if (!cartId) {
+                const response = await fetch('/api/carts', {
+                    method: 'POST'
+                });
+                
+                if (response.ok) {
+                    const cart = await response.json();
+                    cartId = cart._id;
+                    localStorage.setItem('cartId', cartId);
+                } else {
+                    throw new Error('Error al crear carrito');
+                }
+            }
+            
+            // Agregar producto al carrito
+            const response = await fetch(`/api/carts/${cartId}/products/${productId}`, {
+                method: 'POST'
+            });
+            
+            if (response.ok) {
+                alert('✅ Producto agregado al carrito');
+            } else {
+                alert('❌ Error al agregar el producto');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('❌ Error al agregar al carrito');
+        }
+    }
+
+    // Cargar carrito existente al iniciar la página
+    document.addEventListener('DOMContentLoaded', function() {
+        const cartId = localStorage.getItem('cartId');
+        if (cartId) {
+            console.log('Carrito actual:', cartId);
+        }
+    });
     </script>
+
+    {{> productDetails }}
